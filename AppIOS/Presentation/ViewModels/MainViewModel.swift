@@ -36,7 +36,15 @@ final class MainViewModel
     private let accessibility: Accessibility
     
     
-//MARK:
+//MARK: Tareas
+    
+    private var detectionTask: Task<Void, Never>?
+    private var searchTask: Task<Void, Never?>?
+    private var guidanceAnnouncementTask: Task<Void, Never>?
+    
+//MARK: Inicializacion
+    
+    
     
     
     
