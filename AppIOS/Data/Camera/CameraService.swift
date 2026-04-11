@@ -256,3 +256,15 @@ enum CameraError: LocalizedError {
         }
     }
 }
+
+// MARK: - Preview Support
+
+#if DEBUG
+extension CameraService {
+    
+    /// Creates a CameraService instance for SwiftUI previews.
+    static func preview() -> CameraService {
+        CameraService()
+    }
+}
+#endif

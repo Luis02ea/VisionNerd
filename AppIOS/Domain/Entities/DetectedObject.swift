@@ -25,6 +25,16 @@ public struct DetectedObject: Identifiable, Sendable, Equatable
         self.estimatedDistance = estimatedDistance
         self.timestamp = timestamp
     }
+    
+    /// Convenience initializer — auto-generates id, timestamp, and estimates distance from boundingBox.
+    public init(label: String, boundingBox: CGRect, confidence: Float) {
+        self.id = UUID()
+        self.label = label
+        self.boundingBox = boundingBox
+        self.confidence = confidence
+        self.estimatedDistance = DistanceCategory.estimate(from: boundingBox)
+        self.timestamp = Date()
+    }
     public var horizontalPosition: CGFloat
     {
         boundingBox.midX
@@ -56,6 +66,11 @@ public struct DetectedObject: Identifiable, Sendable, Equatable
     public var isVeryClose: Bool
     {
         boundingBox.height > 0.4
+    }
+    
+    /// Etiqueta de distancia para mostrar en la UI.
+    public var distanceLabel: String {
+        estimatedDistance.shortDescription
     }
     
     public static func == (lhs: DetectedObject, rhs: DetectedObject) -> Bool

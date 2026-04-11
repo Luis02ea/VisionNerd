@@ -5,6 +5,11 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Type Aliases
+
+/// Alias for the nested HorizontalDirection type.
+private typealias HorizontalDirection = DetectedObject.HorizontalDirection
+
 // MARK: - SearchViewModel
 
 /// ViewModel dedicado para el flujo de búsqueda guiada.

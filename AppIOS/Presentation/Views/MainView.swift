@@ -197,8 +197,9 @@ struct MainView: View {
             SpatialAudioBar(position: viewModel.spatialPosition)
 
             // Direction card (only in .guiding state)
-            if case .guiding(let direction) = viewModel.searchState {
-                DirectionCard(direction: direction)
+            if case .guiding(_, let lastObject) = viewModel.searchState,
+               let object = lastObject {
+                DirectionCard(direction: GuideDirection.from(object: object))
             }
 
             // Recognized text bubble
@@ -329,7 +330,7 @@ struct MainView: View {
         case .guiding:          return GVColor.accent
         case .found:            return GVColor.success
         case .error:            return GVColor.danger
-        default:                return GVColor.accent
+        case .processing:       return GVColor.accent
         }
     }
 
@@ -347,28 +348,34 @@ struct MainView: View {
 
     private var mainButtonTitle: String {
         switch viewModel.searchState {
-        case .idle:             return "Activar voz"
-        case .listening:        return "Escuchando…"
-        case .scanning, .guiding: return "Cancelar búsqueda"
-        default:                return "Activar voz"
+        case .idle:                  return "Activar voz"
+        case .listening:             return "Escuchando…"
+        case .scanning, .guiding:    return "Cancelar búsqueda"
+        case .processing:            return "Procesando…"
+        case .found:                 return "Activar voz"
+        case .error:                 return "Activar voz"
         }
     }
 
     private var mainButtonIcon: String {
         switch viewModel.searchState {
-        case .idle:             return "mic.fill"
-        case .listening:        return "waveform"
-        case .scanning, .guiding: return "xmark.circle.fill"
-        default:                return "mic.fill"
+        case .idle:                  return "mic.fill"
+        case .listening:             return "waveform"
+        case .scanning, .guiding:    return "xmark.circle.fill"
+        case .processing:            return "hourglass"
+        case .found:                 return "mic.fill"
+        case .error:                 return "mic.fill"
         }
     }
 
     private var mainButtonAccessibilityLabel: String {
         switch viewModel.searchState {
-        case .idle:             return "Activar comando de voz"
-        case .listening:        return "Escuchando. Habla ahora."
-        case .scanning, .guiding: return "Cancelar búsqueda activa"
-        default:                return "Activar comando de voz"
+        case .idle:                  return "Activar comando de voz"
+        case .listening:             return "Escuchando. Habla ahora."
+        case .scanning, .guiding:    return "Cancelar búsqueda activa"
+        case .processing:            return "Procesando solicitud"
+        case .found:                 return "Activar comando de voz"
+        case .error:                 return "Activar comando de voz"
         }
     }
 }

@@ -51,6 +51,12 @@ final class MainViewModel {
     /// Resultado de OCR (etiqueta leída).
     var labelInfo: LabelInfo?
     
+    /// Posición espacial del objeto detectado (0.0 izquierda – 1.0 derecha).
+    var spatialPosition: Double = 0.5
+    
+    /// Query de búsqueda actual (nil si no hay búsqueda activa).
+    var currentSearchQuery: String? = nil
+    
     // MARK: - Dependencies
     
     private let detectObjectsUseCase: DetectObjectsUseCase
@@ -196,6 +202,7 @@ final class MainViewModel {
     // MARK: - Guided Search (Module 4)
   
     private func startGuidedSearch(query: String) {
+        currentSearchQuery = query
         transitionState(with: .intentParsed(query: query))
         
         searchTask?.cancel()
@@ -211,6 +218,9 @@ final class MainViewModel {
                 
                 if let bestMatch = matches.first {
                     transitionState(with: .objectDetected(bestMatch))
+                    
+                    // Update spatial position for the audio bar
+                    spatialPosition = Double(bestMatch.horizontalPosition)
                     
                     spatialAudioEngine.playSpatialAudio(for: bestMatch)
                     
@@ -344,6 +354,9 @@ final class MainViewModel {
         spatialAudioEngine.stop()
         voiceRecognitionEngine.stopListening()
         
+        currentSearchQuery = nil
+        spatialPosition = 0.5
+        
         transitionState(with: .cancel)
         speak("Operación cancelada.")
         
@@ -363,3 +376,58 @@ final class MainViewModel {
         speechSynthesizer.speakAsync(text, interrupt: interrupt)
     }
 }
+
+// MARK: - Preview Support
+
+#if DEBUG
+extension MainViewModel {
+    
+    /// Creates a MainViewModel with mock dependencies for SwiftUI previews.
+    static func preview(state: SearchState = .idle) -> MainViewModel {
+        let cameraService = CameraService()
+        let inferenceEngine = InferenceEngine()
+        let cloudAIService = CloudAIService()
+        
+        let detectionRepo = ObjectDetectionRepositoryImpl(
+            cameraService: cameraService,
+            inferenceEngine: inferenceEngine
+        )
+        let ocrRepo = OCRRepositoryImpl(cameraService: cameraService)
+        let sceneRepo = SceneDescriptionRepositoryImpl(
+            inferenceEngine: inferenceEngine,
+            cameraService: cameraService,
+            cloudAIService: cloudAIService
+        )
+        
+        let vm = MainViewModel(
+            detectObjectsUseCase: DetectObjectsUseCase(repository: detectionRepo),
+            searchProductUseCase: SearchProductUseCase(detectionRepository: detectionRepo),
+            readLabelUseCase: ReadLabelUseCase(ocrRepository: ocrRepo),
+            describeSceneUseCase: DescribeSceneUseCase(sceneRepository: sceneRepo),
+            speechSynthesizer: SpeechSynthesizer(),
+            voiceRecognitionEngine: VoiceRecognitionEngine(),
+            spatialAudioEngine: SpatialAudioEngine(),
+            hapticsEngine: HapticsEngine()
+        )
+        vm.searchState = state
+        
+        // Add sample data for non-idle states
+        if state != .idle {
+            vm.detectedObjects = [
+                DetectedObject(
+                    label: "Leche",
+                    boundingBox: CGRect(x: 0.3, y: 0.2, width: 0.25, height: 0.3),
+                    confidence: 0.94
+                ),
+                DetectedObject(
+                    label: "Pan",
+                    boundingBox: CGRect(x: 0.6, y: 0.4, width: 0.15, height: 0.18),
+                    confidence: 0.87
+                )
+            ]
+        }
+        
+        return vm
+    }
+}
+#endif

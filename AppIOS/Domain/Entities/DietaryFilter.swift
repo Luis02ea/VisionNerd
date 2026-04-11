@@ -1,85 +1,91 @@
-// MARK: - OCRCache.swift
-
+// MARK: - DietaryFilter.swift
+// GuideVision — Domain Layer
+// Copyright © 2026 GuideVision. All rights reserved.
 
 import Foundation
 
-// MARK: - OCRCache
+// MARK: - DietaryFilter
 
-/// Cache de resultados OCR usando `NSCache`.
+/// Filtros dietéticos extraídos de los comandos de voz del usuario.
 ///
-/// Almacena texto reconocido indexado por el hash del frame de la cámara
-/// para evitar re-procesar frames similares.
+/// Permite a GuideVision entender solicitudes como:
+/// - "Buscar leche **sin gluten**"
+/// - "Buscar pan **vegano**"
+/// - "Buscar cereal **sin azúcar**"
 ///
-/// ## Configuración
-/// - Límite de 50 entradas
-/// - Límite de 5 MB de memoria
-/// - Eviction automática por presión de memoria
-final class OCRCache: @unchecked Sendable {
+/// ## Extracción
+/// Se extraen usando coincidencia de keywords desde el texto reconocido
+/// por el motor de voz.
+public enum DietaryFilter: String, Sendable, Equatable, CaseIterable {
     
-    // MARK: - Properties
+    /// Sin gluten.
+    case glutenFree
     
-    /// Cache subyacente NSCache.
-    private let cache: NSCache<NSString, CacheEntry>
+    /// Sin lactosa.
+    case lactoseFree
     
-    // MARK: - Initialization
+    /// Sin azúcar.
+    case sugarFree
     
-    /// Crea una nueva instancia del cache OCR.
-    ///
-    /// - Parameters:
-    ///   - countLimit: Número máximo de entradas (default: 50).
-    ///   - totalCostLimit: Límite de memoria en bytes (default: 5 MB).
-    init(countLimit: Int = 50, totalCostLimit: Int = 5 * 1024 * 1024) {
-        cache = NSCache<NSString, CacheEntry>()
-        cache.countLimit = countLimit
-        cache.totalCostLimit = totalCostLimit
-    }
+    /// Vegano.
+    case vegan
     
-    // MARK: - Cache Operations
+    /// Vegetariano.
+    case vegetarian
     
-    /// Almacena un resultado OCR en el cache.
-    ///
-    /// - Parameters:
-    ///   - text: Texto reconocido.
-    ///   - key: Clave de cache (hash del frame).
-    func store(_ text: String, for key: String) {
-        let entry = CacheEntry(text: text)
-        let cost = text.utf8.count
-        cache.setObject(entry, forKey: key as NSString, cost: cost)
-    }
+    /// Orgánico.
+    case organic
     
-    /// Recupera un resultado OCR del cache.
-    ///
-    /// - Parameter key: Clave de cache (hash del frame).
-    /// - Returns: Texto almacenado, o `nil` si no existe o expiró.
-    func get(for key: String) -> String? {
-        guard let entry = cache.object(forKey: key as NSString) else {
-            return nil
+    /// Bajo en sodio.
+    case lowSodium
+    
+    /// Bajo en calorías.
+    case lowCalorie
+    
+    // MARK: - Keywords
+    
+    /// Keywords para identificar este filtro en texto de voz.
+    public var keywords: [String] {
+        switch self {
+        case .glutenFree:   return ["sin gluten", "libre de gluten", "gluten free"]
+        case .lactoseFree:  return ["sin lactosa", "libre de lactosa", "deslactosado", "deslactosada"]
+        case .sugarFree:    return ["sin azúcar", "sin azucar", "libre de azúcar", "sugar free", "sin endulzante"]
+        case .vegan:        return ["vegano", "vegana", "vegan", "100% vegetal"]
+        case .vegetarian:   return ["vegetariano", "vegetariana"]
+        case .organic:      return ["orgánico", "orgánica", "organico", "organica", "bio"]
+        case .lowSodium:    return ["bajo en sodio", "sin sal", "bajo sodio"]
+        case .lowCalorie:   return ["bajo en calorías", "bajo en calorias", "light", "ligero", "ligera"]
         }
-        
-        // Check if entry has expired (30 seconds TTL)
-        if Date().timeIntervalSince(entry.timestamp) > 30 {
-            cache.removeObject(forKey: key as NSString)
-            return nil
+    }
+    
+    // MARK: - Localized Name
+    
+    /// Nombre localizado para mostrar al usuario.
+    public var localizedName: String {
+        switch self {
+        case .glutenFree:   return "sin gluten"
+        case .lactoseFree:  return "sin lactosa"
+        case .sugarFree:    return "sin azúcar"
+        case .vegan:        return "vegano"
+        case .vegetarian:   return "vegetariano"
+        case .organic:      return "orgánico"
+        case .lowSodium:    return "bajo en sodio"
+        case .lowCalorie:   return "bajo en calorías"
         }
-        
-        return entry.text
     }
     
-    /// Limpia todo el cache.
-    func clear() {
-        cache.removeAllObjects()
-    }
-}
-
-// MARK: - CacheEntry
-
-/// Entrada del cache con timestamp para expiración.
-private final class CacheEntry: NSObject {
-    let text: String
-    let timestamp: Date
+    // MARK: - Extraction
     
-    init(text: String) {
-        self.text = text
-        self.timestamp = Date()
+    /// Extrae filtros dietéticos de un texto de comando de voz.
+    ///
+    /// - Parameter text: Texto reconocido del comando de voz.
+    /// - Returns: Array de filtros encontrados en el texto.
+    public static func extract(from text: String) -> [DietaryFilter] {
+        let lowercased = text.lowercased()
+        return DietaryFilter.allCases.filter { filter in
+            filter.keywords.contains { keyword in
+                lowercased.contains(keyword)
+            }
+        }
     }
 }

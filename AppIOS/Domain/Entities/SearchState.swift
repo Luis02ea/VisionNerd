@@ -155,3 +155,8 @@ public enum SearchState: Sendable, Equatable
         
     }
 }
+
+// MARK: - Top-Level Type Alias
+
+/// Alias para acceder a SearchEvent sin calificar con SearchState.
+public typealias SearchEvent = SearchState.SearchEvent
