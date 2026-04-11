@@ -8,7 +8,7 @@
 import Foundation
 import CoreGraphics
 
-public enum SerchState:  Sendable, Equatable
+public enum SearchState: Sendable, Equatable
 {
     case idle
     case listening
@@ -33,10 +33,10 @@ public enum SerchState:  Sendable, Equatable
         case (.processing, .intentParsed(let query)):
             return .scanning(query: query)
             
-        case (.scanning(let query), objectDetected(let object)):
+        case (.scanning(let query), .objectDetected(let object)):
             return .guiding(query: query, lastObject: object)
             
-        case (.guiding(let query, _) .objectDetected(let object)):
+        case (.guiding(let query, _), .objectDetected(let object)):
             return .guiding(query: query, lastObject: object)
             
         case (.guiding(_,_), .objectReached(let object)):
@@ -52,7 +52,7 @@ public enum SerchState:  Sendable, Equatable
             return .idle
         
         case (_, .errorOccurred(let message)):
-            return .error(event: message)
+            return .error(message: message)
         
         case (.error, .reset):
             return .idle
@@ -109,11 +109,11 @@ public enum SerchState:  Sendable, Equatable
                 return "Procesando la solicitud."
             case .scanning(let query):
                 return "Buscando \(query). Mueve la camara lentamente."
-            case .guiding:(let query, _):
+            case .guiding(let query, _):
                 return "Guiandote hacia \(query)."
             case .found(let object):
-                return "Llegaste! \(object) está aquí justo enfrente a ti."
-            case .error:
+                return "¡Llegaste! \(object.label) está aquí justo enfrente a ti."
+            case .error(let message):
                 return "Error: \(message)"
             
         }
