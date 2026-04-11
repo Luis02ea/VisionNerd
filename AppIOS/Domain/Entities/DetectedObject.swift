@@ -63,10 +63,7 @@ public struct DetectedObject: Identifiable, Sendable, Equatable
         lhs.id == rhs.id
     }
 // MARK: aqui defini la confianza minima requerida para aceptar una detencion
-    extension DetectedObject
-    {
-        public static let minimumConfidence: Float = 0.5
-    }
+    public static let minimumConfidence: Float = 0.5
     
 //MARK: Aqui definimos con respecto del objecto detectado horzontalmente conforme al centro del frame
     

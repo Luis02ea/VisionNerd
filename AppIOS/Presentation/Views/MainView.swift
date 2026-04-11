@@ -570,7 +570,7 @@ private struct DetectedObjectsPanel: View {
             // Heading
             HStack {
                // ❌ Línea problemática
-Text(targetLabel != nil ? "Buscando: "\(targetLabel!)"" : "Objetos detectados")
+                Text(targetLabel != nil ? "Buscando: \(targetLabel!)" : "Objetos detectados")
                     .font(GVFont.mono(9, weight: .medium))
                     .foregroundColor(GVColor.textMuted)
                     .kerning(0.8)

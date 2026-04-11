@@ -35,6 +35,12 @@ public enum DistanceCategory: String, Sendable, Codable, CaseIterable
         }
     }
     
-    
+    public var shortDescription: String {
+        switch self {
+        case .near: return "muy cerca"
+        case .medium: return "a distancia media"
+        case .far: return "lejos"
+        }
+    }
 }
 
