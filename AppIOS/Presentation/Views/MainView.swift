@@ -731,10 +731,11 @@ extension GVColor {
 #Preview("Guiding") {
     MainView(
         viewModel: MainViewModel.preview(state: .guiding(
-            direction: GuideDirection(
-                side: .right,
-                instruction: "Gira ligeramente a la derecha",
-                detail: "Cereal · ~1.8m · confianza 94%"
+            query: "Cereal",
+            lastObject: DetectedObject(
+                label: "Cereal",
+                boundingBox: CGRect(x: 0.6, y: 0.3, width: 0.2, height: 0.25),
+                confidence: 0.94
             )
         )),
         cameraService: CameraService.preview()
@@ -743,7 +744,13 @@ extension GVColor {
 
 #Preview("Found + OCR") {
     MainView(
-        viewModel: MainViewModel.preview(state: .found),
+        viewModel: MainViewModel.preview(state: .found(
+            object: DetectedObject(
+                label: "Leche",
+                boundingBox: CGRect(x: 0.3, y: 0.2, width: 0.4, height: 0.5),
+                confidence: 0.97
+            )
+        )),
         cameraService: CameraService.preview()
     )
 }

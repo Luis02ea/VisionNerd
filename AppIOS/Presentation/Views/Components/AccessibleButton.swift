@@ -34,14 +34,14 @@ struct AccessibleButton: View {
     let action: () -> Void
     
     /// Estilo del botón.
-    var style: ButtonStyle = .primary
+    var style: AccessibleButtonStyle = .primary
     
     /// Indica si el botón está deshabilitado.
     var isDisabled: Bool = false
     
     // MARK: - Button Styles
     
-    enum ButtonStyle {
+    enum AccessibleButtonStyle {
         case primary
         case secondary
         case danger
@@ -70,7 +70,7 @@ struct AccessibleButton: View {
         icon: String? = nil,
         accessibilityDescription: String? = nil,
         accessibilityHint: String = "",
-        style: ButtonStyle = .primary,
+        style: AccessibleButtonStyle = .primary,
         isDisabled: Bool = false,
         action: @escaping () -> Void
     ) {

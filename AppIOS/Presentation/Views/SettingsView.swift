@@ -10,6 +10,7 @@
 // Copyright © 2026 GuideVision. All rights reserved.
 
 import SwiftUI
+import AVFoundation
 
 // MARK: - SettingsView
 

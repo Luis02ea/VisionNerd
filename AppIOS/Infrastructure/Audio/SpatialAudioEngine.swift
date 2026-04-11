@@ -231,7 +231,7 @@ final class SpatialAudioEngine: @unchecked Sendable {
         }
         
         // Stop current event before playing new one
-        currentSoundEvent?.stop()
+        currentSoundEvent?.stopAndInvalidate()
         
         // Create and play sound event
         do {
@@ -278,10 +278,7 @@ final class SpatialAudioEngine: @unchecked Sendable {
                 
                 let event = try PHASESoundEvent(
                     engine: engine,
-                    assetIdentifier: "event_\(soundName)",
-                    mixerParameters: [
-                        "spatialMixer": PHASEMixerParameters()
-                    ]
+                    assetIdentifier: "event_\(soundName)"
                 )
                 
                 event.start()
@@ -392,7 +389,7 @@ final class SpatialAudioEngine: @unchecked Sendable {
     
     /// Detiene toda reproducción de audio espacial.
     func stop() {
-        currentSoundEvent?.stop()
+        currentSoundEvent?.stopAndInvalidate()
         currentSoundEvent = nil
         
         avPlayerNode?.stop()
@@ -405,7 +402,7 @@ final class SpatialAudioEngine: @unchecked Sendable {
     
     /// Pausa la reproducción actual.
     func pause() {
-        currentSoundEvent?.stop()
+        currentSoundEvent?.stopAndInvalidate()
         avPlayerNode?.pause()
     }
     
