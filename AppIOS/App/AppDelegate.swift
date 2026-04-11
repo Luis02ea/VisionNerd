@@ -9,7 +9,6 @@ import SwiftUI
 import AVFoundation
 import CoreML
 import Combine
-import Os
 
 
 class AppDelegate: NSObject, UIApplicationDelegate {
