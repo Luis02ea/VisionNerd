@@ -5,59 +5,26 @@
 //  Created by Alumno on 09/04/26.
 //
 
-
-// MARK: - MainViewModel.swift
-// GuideVision — Presentation Layer
-// Copyright © 2026 GuideVision. All rights reserved.
-
 import Foundation
 import SwiftUI
 
-// MARK: - MainViewModel
 
-/// ViewModel principal que coordina todas las funciones de GuideVision.
-///
-/// Orquesta los módulos de detección, búsqueda, OCR, voz y audio espacial
-/// respondiendo a las intenciones del usuario (`UserIntent`).
-///
-/// Usa `@Observable` (iOS 17+) para reactividad automática con SwiftUI.
 @Observable
 @MainActor
 final class MainViewModel {
     
-    // MARK: - Published State
     
-    /// Estado actual de la búsqueda.
     var searchState: SearchState = .idle
-    
-    /// Objetos detectados en el frame actual.
     var detectedObjects: [DetectedObject] = []
-    
-    /// Último texto hablado al usuario.
     var lastSpokenText: String = ""
-    
-    /// Indica si se está procesando una solicitud.
     var isProcessing: Bool = false
-    
-    /// Mensaje de error actual.
     var errorMessage: String?
-    
-    /// Indica si la cámara está activa.
     var isCameraActive: Bool = false
-    
-    /// Texto reconocido por voz (parcial/final).
     var recognizedText: String = ""
-    
-    /// Resultado de OCR (etiqueta leída).
     var labelInfo: LabelInfo?
-    
-    /// Posición espacial del objeto detectado (0.0 izquierda – 1.0 derecha).
     var spatialPosition: Double = 0.5
-    
-    /// Query de búsqueda actual (nil si no hay búsqueda activa).
     var currentSearchQuery: String? = nil
     
-    // MARK: - Dependencies
     
     private let detectObjectsUseCase: DetectObjectsUseCase
     private let searchProductUseCase: SearchProductUseCase
@@ -70,7 +37,6 @@ final class MainViewModel {
     private let hapticsEngine: HapticsEngine
     private let accessibilityManager: AccessibilityManager
     
-    // MARK: - Tasks
     
     private var detectionTask: Task<Void, Never>?
     private var searchTask: Task<Void, Never>?
@@ -99,7 +65,6 @@ final class MainViewModel {
         self.accessibilityManager = accessibilityManager
     }
     
-    // MARK: - Lifecycle
     
     func onAppear() {
         startIdleDetection()
@@ -114,7 +79,6 @@ final class MainViewModel {
         hapticsEngine.stop()
     }
     
-    // MARK: - Voice Activation
     
     func activateVoiceInput() {
         guard searchState == .idle || searchState == .listening else {
@@ -127,7 +91,7 @@ final class MainViewModel {
     }
     
     private func startListening() {
-        Task {
+        Task { @MainActor in
             let authorized = await voiceRecognitionEngine.requestAuthorization()
             guard authorized else {
                 speak("No se tiene permiso para reconocimiento de voz. Actívalo en Ajustes.")
@@ -155,7 +119,6 @@ final class MainViewModel {
         }
     }
     
-    // MARK: - Intent Handling
     
     func handleIntent(_ intent: UserIntent) {
         speak(intent.confirmationMessage, interrupt: true)
@@ -182,12 +145,11 @@ final class MainViewModel {
         }
     }
     
-    // MARK: - Idle Detection
     
     private func startIdleDetection() {
         detectionTask?.cancel()
         
-        detectionTask = Task {
+        detectionTask = Task { @MainActor in
             let stream = detectObjectsUseCase.execute(fps: 1)
             
             for await objects in stream {
@@ -199,14 +161,13 @@ final class MainViewModel {
         isCameraActive = true
     }
     
-    // MARK: - Guided Search (Module 4)
   
     private func startGuidedSearch(query: String) {
         currentSearchQuery = query
         transitionState(with: .intentParsed(query: query))
         
         searchTask?.cancel()
-        searchTask = Task {
+        searchTask = Task { @MainActor in
             let stream = searchProductUseCase.startSearch(query: query)
             
             startGuidanceAnnouncements(query: query)
@@ -219,7 +180,6 @@ final class MainViewModel {
                 if let bestMatch = matches.first {
                     transitionState(with: .objectDetected(bestMatch))
                     
-                    // Update spatial position for the audio bar
                     spatialPosition = Double(bestMatch.horizontalPosition)
                     
                     spatialAudioEngine.playSpatialAudio(for: bestMatch)
@@ -241,7 +201,7 @@ final class MainViewModel {
     
     private func startGuidanceAnnouncements(query: String) {
         guidanceAnnouncementTask?.cancel()
-        guidanceAnnouncementTask = Task {
+        guidanceAnnouncementTask = Task { @MainActor in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
                 
@@ -274,7 +234,7 @@ final class MainViewModel {
         
         transitionState(with: .objectReached(object))
         
-        Task {
+        Task { @MainActor in
             try? await Task.sleep(nanoseconds: 3_000_000_000)
             await searchProductUseCase.stopSearch()
             guidanceAnnouncementTask?.cancel()
@@ -285,12 +245,11 @@ final class MainViewModel {
         }
     }
     
-    // MARK: - Scene Description
     
     private func describeScene() {
         isProcessing = true
         
-        Task {
+        Task { @MainActor in
             do {
                 let description = try await describeSceneUseCase.execute()
                 speak(description)
@@ -302,12 +261,11 @@ final class MainViewModel {
         }
     }
     
-    // MARK: - OCR / Label Reading
     
     private func readLabel() {
         isProcessing = true
         
-        Task {
+        Task { @MainActor in
             do {
                 speak("Analizando la etiqueta. Un momento.")
                 let summary = try await readLabelUseCase.executeAndSummarize()
@@ -320,10 +278,9 @@ final class MainViewModel {
         }
     }
     
-    // MARK: - Distance Announcement
     
     private func announceDistance() {
-        Task {
+        Task { @MainActor in
             if let nearest = await detectObjectsUseCase.nearestObject() {
                 speak("\(nearest.label) está \(nearest.estimatedDistance.localizedDescription)")
             } else {
@@ -332,7 +289,6 @@ final class MainViewModel {
         }
     }
     
-    // MARK: - State Machine
     
     private func transitionState(with event: SearchEvent) {
         guard let newState = searchState.transition(with: event) else {
@@ -347,7 +303,6 @@ final class MainViewModel {
         }
     }
     
-    // MARK: - Cancel
     
     private func cancelCurrentOperation() {
         cancelAllTasks()
@@ -369,7 +324,6 @@ final class MainViewModel {
         guidanceAnnouncementTask?.cancel()
     }
     
-    // MARK: - Speech Helper
     
     private func speak(_ text: String, interrupt: Bool = false) {
         lastSpokenText = text
@@ -377,12 +331,10 @@ final class MainViewModel {
     }
 }
 
-// MARK: - Preview Support
 
 #if DEBUG
 extension MainViewModel {
     
-    /// Creates a MainViewModel with mock dependencies for SwiftUI previews.
     static func preview(state: SearchState = .idle) -> MainViewModel {
         let cameraService = CameraService()
         let inferenceEngine = InferenceEngine()
@@ -411,7 +363,6 @@ extension MainViewModel {
         )
         vm.searchState = state
         
-        // Add sample data for non-idle states
         if state != .idle {
             vm.detectedObjects = [
                 DetectedObject(

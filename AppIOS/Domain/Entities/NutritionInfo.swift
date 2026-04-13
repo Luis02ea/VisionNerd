@@ -1,16 +1,7 @@
-// MARK: - NutritionInfo.swift
-// GuideVision — Domain Layer
-// Copyright © 2026 GuideVision. All rights reserved.
 
 import Foundation
 
-// MARK: - NutritionInfo
 
-/// Información nutricional extraída de una etiqueta de producto.
-///
-/// Almacena los valores nutricionales parseados del texto OCR
-/// como strings, ya que los formatos varían entre etiquetas
-/// (e.g., "120 kcal", "5g", "12%").
 public struct NutritionInfo: Sendable, Equatable {
     
     /// Calorías (e.g., "120 kcal").

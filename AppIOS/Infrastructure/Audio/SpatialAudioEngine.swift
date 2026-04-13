@@ -5,22 +5,13 @@
 //  Created by Alumno on 11/04/26.
 //
 
-// MARK: - SpatialAudioEngine.swift
-// GuideVision — Infrastructure Layer
-// Copyright © 2026 GuideVision. All rights reserved.
 
 import Foundation
 import AVFoundation
 import PHASE
 
-// MARK: - SpatialAudioEngine
 
-/// Motor de audio espacial 3D usando el framework PHASE de Apple.
-///
-/// Mapea la posición de un objeto detectado en el frame de la cámara
-/// a audio posicional 3D, permitiendo al usuario localizar objetos
-/// mediante sonido.
-///
+
 /// ## Mapeo de posición
 /// | Posición horizontal (boundingBox.midX) | Azimuth     |
 /// |----------------------------------------|-------------|
@@ -34,43 +25,27 @@ import PHASE
 /// | .near     | 1.0  | 1.05  |
 /// | .medium   | 0.65 | 1.0   |
 /// | .far      | 0.3  | 0.95  |
-///
-/// ## Audio Session
-/// Usa `AVAudioSession.Category.playback` con `.mixWithOthers`
-/// para nunca interrumpir VoiceOver.
+
 final class SpatialAudioEngine: @unchecked Sendable {
     
-    // MARK: - Properties
     
-    /// Motor PHASE para audio espacial.
     private var phaseEngine: PHASEEngine?
     
-    /// Listener (oídos del usuario) en el espacio 3D.
     private var listener: PHASEListener?
     
-    /// Fuente de audio activa.
     private var source: PHASESource?
     
-    /// Evento de sonido actual.
     private var currentSoundEvent: PHASESoundEvent?
     
-    /// Flag para indicar si el motor está activo.
     private(set) var isActive: Bool = false
     
-    /// La sesión de audio compartida.
     private let audioSession = AVAudioSession.sharedInstance()
-    
-    // MARK: - Fallback (AVAudioEngine)
-    
-    /// Motor AVAudio como fallback cuando PHASE no está disponible.
     private var avAudioEngine: AVAudioEngine?
     private var avEnvironmentNode: AVAudioEnvironmentNode?
     private var avPlayerNode: AVAudioPlayerNode?
     
-    /// Flag que indica si estamos usando el fallback.
     private var usingFallback: Bool = false
     
-    // MARK: - Initialization
     
     init() {
         configureAudioSession()
@@ -80,9 +55,7 @@ final class SpatialAudioEngine: @unchecked Sendable {
         stop()
     }
     
-    // MARK: - Audio Session
     
-    /// Configura la sesión de audio para no interrumpir VoiceOver.
     private func configureAudioSession() {
         do {
             try audioSession.setCategory(
@@ -96,11 +69,7 @@ final class SpatialAudioEngine: @unchecked Sendable {
         }
     }
     
-    // MARK: - PHASE Engine Setup
-    
-    /// Inicia el motor de audio espacial.
-    ///
-    /// Intenta usar PHASE primero. Si falla, recurre a AVAudioEngine como fallback.
+
     func start() {
         do {
             try setupPHASEEngine()
@@ -113,23 +82,18 @@ final class SpatialAudioEngine: @unchecked Sendable {
         }
     }
     
-    /// Configura el motor PHASE con listener y source.
     private func setupPHASEEngine() throws {
         let engine = PHASEEngine(updateMode: .automatic)
         
-        // Create listener (user's ears)
         let listener = PHASEListener(engine: engine)
         listener.transform = matrix_identity_float4x4
         try engine.rootObject.addChild(listener)
         
-        // Create source
         let source = PHASESource(engine: engine)
         try engine.rootObject.addChild(source)
         
-        // Register sound assets
         try registerSoundAssets(engine: engine)
         
-        // Start engine
         try engine.start()
         
         self.phaseEngine = engine
@@ -137,7 +101,6 @@ final class SpatialAudioEngine: @unchecked Sendable {
         self.source = source
     }
     
-    /// Registra los archivos de sonido sonar en el motor PHASE.
     private func registerSoundAssets(engine: PHASEEngine) throws {
         let soundNames = ["sonar_near", "sonar_medium", "sonar_far"]
         
@@ -151,15 +114,12 @@ final class SpatialAudioEngine: @unchecked Sendable {
                     normalizationMode: .dynamic
                 )
             } else {
-                // Sound file not found — will use programmatic fallback
                 print("[SpatialAudio] Sound file '\(name).caf' not found in bundle")
             }
         }
     }
     
-    // MARK: - AVAudio Fallback
     
-    /// Configura AVAudioEngine como fallback para audio espacial básico.
     private func setupAVAudioFallback() {
         let engine = AVAudioEngine()
         let environmentNode = AVAudioEnvironmentNode()
@@ -168,7 +128,6 @@ final class SpatialAudioEngine: @unchecked Sendable {
         engine.attach(environmentNode)
         engine.attach(playerNode)
         
-        // Configure 3D audio environment
         environmentNode.listenerPosition = AVAudio3DPoint(x: 0, y: 0, z: 0)
         environmentNode.renderingAlgorithm = .HRTFHQ
         
@@ -185,12 +144,7 @@ final class SpatialAudioEngine: @unchecked Sendable {
             print("[SpatialAudio] AVAudio fallback also failed: \(error)")
         }
     }
-    
-    // MARK: - Spatial Audio Playback
-    
-    /// Reproduce audio espacial basado en la posición y distancia de un objeto.
-    ///
-    /// - Parameter object: El objeto detectado cuya posición determina el audio espacial.
+ 
     func playSpatialAudio(for object: DetectedObject) {
         let azimuth = calculateAzimuth(from: object.horizontalPosition)
         let distance = object.estimatedDistance
@@ -202,11 +156,9 @@ final class SpatialAudioEngine: @unchecked Sendable {
         }
     }
     
-    /// Reproduce audio espacial usando PHASE.
     private func playSpatialAudioPHASE(azimuth: Float, distance: DistanceCategory) {
         guard let engine = phaseEngine, let source = source else { return }
         
-        // Update source position based on azimuth
         let radians = azimuth * .pi / 180.0
         let distanceValue: Float = {
             switch distance {
@@ -216,13 +168,11 @@ final class SpatialAudioEngine: @unchecked Sendable {
             }
         }()
         
-        // Position source in 3D space
         var transform = matrix_identity_float4x4
         transform.columns.3.x = sin(radians) * distanceValue
         transform.columns.3.z = -cos(radians) * distanceValue
         source.transform = transform
         
-        // Select appropriate sound asset
         let soundName: String
         switch distance {
         case .near:   soundName = "sonar_near"
@@ -230,12 +180,9 @@ final class SpatialAudioEngine: @unchecked Sendable {
         case .far:    soundName = "sonar_far"
         }
         
-        // Stop current event before playing new one
         currentSoundEvent?.stopAndInvalidate()
         
-        // Create and play sound event
         do {
-            // Try to create a channel mixer definition for spatialized playback
             let channelMixerDef = PHASEChannelMixerDefinition(
                 channelLayout: .init(layoutTag: kAudioChannelLayoutTag_Mono)!
             )
@@ -248,14 +195,12 @@ final class SpatialAudioEngine: @unchecked Sendable {
                 spatialPipeline: pipeline
             )
             
-            // Set distance model
             let distanceModel = PHASEGeometricSpreadingDistanceModelParameters()
             distanceModel.fadeOutParameters = PHASEDistanceModelFadeOutParameters(
                 cullDistance: 10.0
             )
             spatialMixerDef.distanceModelParameters = distanceModel
             
-            // Check if the sound asset was registered
             if let _ = try? engine.assetRegistry.registerSoundAsset(
                 url: Bundle.main.url(forResource: soundName, withExtension: "caf")!,
                 identifier: "\(soundName)_\(UUID().uuidString)",
@@ -263,7 +208,6 @@ final class SpatialAudioEngine: @unchecked Sendable {
                 channelLayout: nil,
                 normalizationMode: .dynamic
             ) {
-                // Asset registered — create sampler node
                 let samplerNode = PHASESamplerNodeDefinition(
                     soundAssetIdentifier: soundName,
                     mixerDefinition: spatialMixerDef
@@ -285,7 +229,6 @@ final class SpatialAudioEngine: @unchecked Sendable {
                 currentSoundEvent = event
             }
         } catch {
-            // If PHASE event creation fails, fallback silently
             print("[SpatialAudio] PHASE playback error: \(error)")
         }
     }

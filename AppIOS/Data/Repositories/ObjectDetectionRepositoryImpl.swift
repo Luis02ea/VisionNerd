@@ -54,7 +54,11 @@ final class ObjectDetectionRepositoryImpl: ObjectDetectionRepository, @unchecked
                 do {
                     let objects = try await inferenceEngine.detectObjects(in: pixelBuffer)
                     self.latestDetections = objects
-                    self.detectionContinuation?.yield(objects)
+                    
+                    // Yield on MainActor to ensure thread safety for @Observable consumers
+                    await MainActor.run {
+                        self.detectionContinuation?.yield(objects)
+                    }
                 } catch {
                     print("[ObjectDetection] Inference error: \(error.localizedDescription)")
                 }

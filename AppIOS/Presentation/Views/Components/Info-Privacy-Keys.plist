@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- REQUIRED: Camera access for object detection, OCR, and scene description -->
+    <key>NSCameraUsageDescription</key>
+    <string>GuideVision utiliza la cámara para ayudar a identificar productos, leer etiquetas y describir escenas del entorno para mejorar la accesibilidad.</string>
+    
+    <!-- OPTIONAL: If using microphone for voice commands -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>GuideVision puede usar el micrófono para interacciones de voz y comandos hablados que mejoran la accesibilidad.</string>
+    
+    <!-- OPTIONAL: If using speech recognition -->
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>GuideVision utiliza reconocimiento de voz para permitir comandos hablados y mejorar la experiencia de accesibilidad.</string>
+    
+    <!-- OPTIONAL: If accessing photo library -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>GuideVision puede acceder a tus fotos para analizar imágenes guardadas y proporcionar descripciones accesibles.</string>
+    
+    <!-- OPTIONAL: If saving to photo library -->
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>GuideVision puede guardar imágenes analizadas en tu biblioteca de fotos para referencia futura.</string>
+</dict>
+</plist>

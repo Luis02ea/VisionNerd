@@ -1,31 +1,28 @@
-// MARK: - MainView.swift
 import SwiftUI
 import Foundation
 import CoreGraphics
 import Combine
 
-// MARK: - Design Tokens
-
 private enum GVColor {
-    static let bgPage     = Color(hex: "#0C0C0E")
-    static let bgSurface  = Color(hex: "#141417")
-    static let bgElevated = Color(hex: "#1C1C21")
-    static let bgCard     = Color(hex: "#222228")
+    static let bgPage     = Color(hex: "#F5F5DC")
+    static let bgSurface  = Color(hex: "#EEEEDD")
+    static let bgElevated = Color(hex: "#E8E8D0")
+    static let bgCard     = Color(hex: "#DDDDC8")
 
-    static let accent     = Color(hex: "#E8C547")
+    static let accent     = Color(hex: "#F8DF54")
     static let accentDim  = Color(hex: "#9A8230")
-    static let accentGlow = Color(hex: "#E8C547").opacity(0.12)
+    static let accentGlow = Color(hex: "#F8DF54").opacity(0.12)
 
     static let success    = Color(hex: "#47E8A0")
     static let info       = Color(hex: "#47A0E8")
     static let danger     = Color(hex: "#E85547")
 
-    static let textPrimary   = Color(hex: "#F2F2F0")
-    static let textSecondary = Color(hex: "#8A8A94")
-    static let textMuted     = Color(hex: "#50505A")
+    static let textPrimary   = Color(hex: "#1A1A1A")
+    static let textSecondary = Color(hex: "#4A4A4A")
+    static let textMuted     = Color(hex: "#6A6A6A")
 
-    static let border        = Color.white.opacity(0.07)
-    static let borderAccent  = Color(hex: "#E8C547").opacity(0.30)
+    static let border        = Color.black.opacity(0.15)
+    static let borderAccent  = Color(hex: "#F8DF54").opacity(0.50)
 }
 
 private enum GVFont {
@@ -36,8 +33,6 @@ private enum GVFont {
         .custom("DM Mono", size: size).weight(weight)
     }
 }
-
-// MARK: - MainView
 
 struct MainView: View {
 
@@ -54,18 +49,15 @@ struct MainView: View {
     var body: some View {
         ZStack {
 
-            // MARK: 1 — Camera feed background
             CameraPreviewView(
                 session: cameraService.captureSession,
                 detectedObjects: viewModel.detectedObjects
             )
             .ignoresSafeArea()
 
-            // MARK: 2 — Camera grid overlay (visual reference)
             CameraGridOverlay(state: viewModel.searchState)
                 .ignoresSafeArea()
 
-            // MARK: 3 — Gradient vignettes top + bottom
             VStack(spacing: 0) {
                 LinearGradient(
                     colors: [GVColor.bgPage.opacity(0.85), .clear],
@@ -83,7 +75,6 @@ struct MainView: View {
             }
             .ignoresSafeArea()
 
-            // MARK: 4 — Main layout
             VStack(spacing: 0) {
                 statusBar
                 Spacer()
@@ -113,22 +104,18 @@ struct MainView: View {
         }
     }
 
-    // MARK: - Status Bar
-    // Matches: statusBar computed property
-    // Top row: brand name / status dot + text / settings icon
-
     private var statusBar: some View {
         HStack(alignment: .center, spacing: 0) {
 
-            // Brand
             HStack(spacing: 10) {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(GVColor.accent)
+                    .fill(Color(hex: "#9FD2D6"))
                     .frame(width: 36, height: 36)
                     .overlay(
-                        Image(systemName: "eye.fill")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(GVColor.bgPage)
+                        Image("Start")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
                     )
 
                 VStack(alignment: .leading, spacing: 1) {
@@ -144,7 +131,6 @@ struct MainView: View {
 
             Spacer()
 
-            // Status pill
             HStack(spacing: 6) {
                 Circle()
                     .fill(statusColor)
@@ -164,7 +150,6 @@ struct MainView: View {
             )
             .clipShape(Capsule())
 
-            // Settings
             Button(action: { showSettings = true }) {
                 Image(systemName: "gearshape.fill")
                     .font(.system(size: 16))
@@ -186,23 +171,16 @@ struct MainView: View {
         .padding(.bottom, 16)
     }
 
-    // MARK: - Search Status View
-    // Matches: searchStatusView computed property
-    // Center area — visible only when searchState != .idle
-
     private var searchStatusView: some View {
         VStack(spacing: 12) {
 
-            // Spatial audio position bar
             SpatialAudioBar(position: viewModel.spatialPosition)
 
-            // Direction card (only in .guiding state)
             if case .guiding(_, let lastObject) = viewModel.searchState,
                let object = lastObject {
                 DirectionCard(direction: GuideDirection.from(object: object))
             }
 
-            // Recognized text bubble
             if !viewModel.recognizedText.isEmpty {
                 HStack(spacing: 8) {
                     Image(systemName: "waveform")
@@ -224,7 +202,6 @@ struct MainView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
-            // Processing spinner
             if viewModel.isProcessing {
                 HStack(spacing: 8) {
                     ProgressView()
@@ -238,7 +215,6 @@ struct MainView: View {
                 }
             }
 
-            // Detected objects panel
             if !viewModel.detectedObjects.isEmpty {
                 DetectedObjectsPanel(
                     objects: viewModel.detectedObjects,
@@ -251,14 +227,9 @@ struct MainView: View {
         .accessibilityLabel("Estado de búsqueda: \(viewModel.searchState.name)")
     }
 
-    // MARK: - Control Panel
-    // Matches: controlPanel computed property
-    // Bottom area: main voice button + quick actions + last spoken text
-
     private var controlPanel: some View {
         VStack(spacing: 10) {
 
-            // Last spoken text
             if !viewModel.lastSpokenText.isEmpty {
                 Text(viewModel.lastSpokenText)
                     .font(GVFont.mono(11))
@@ -277,7 +248,6 @@ struct MainView: View {
                     .accessibilityLabel("Último mensaje: \(viewModel.lastSpokenText)")
             }
 
-            // Quick action row: Describir + Leer
             HStack(spacing: 10) {
                 QuickActionButton(
                     title: "Describir",
@@ -299,7 +269,6 @@ struct MainView: View {
             }
             .padding(.horizontal, 20)
 
-            // Main voice button
             MainVoiceButton(
                 title: mainButtonTitle,
                 icon: mainButtonIcon,
@@ -310,17 +279,14 @@ struct MainView: View {
             }
             .padding(.horizontal, 20)
 
-            // Home indicator space
             Capsule()
-                .fill(Color.white.opacity(0.2))
+                .fill(Color.black.opacity(0.3))
                 .frame(width: 120, height: 4)
                 .padding(.top, 8)
                 .padding(.bottom, 4)
         }
         .padding(.bottom, 16)
     }
-
-    // MARK: - Helpers
 
     private var statusColor: Color {
         switch viewModel.searchState {
@@ -380,10 +346,6 @@ struct MainView: View {
     }
 }
 
-// MARK: - MainVoiceButton
-// Botón principal de acción — estilo: filled accent en idle,
-// outlined naranja en listening, rojo suave en scanning/guiding
-
 private struct MainVoiceButton: View {
     let title: String
     let icon: String
@@ -403,7 +365,7 @@ private struct MainVoiceButton: View {
         switch state {
         case .scanning, .guiding: return GVColor.danger
         case .listening:        return .white
-        default:                return GVColor.bgPage
+        default:                return Color(hex: "#1A1A1A")
         }
     }
 
@@ -440,9 +402,6 @@ private struct MainVoiceButton: View {
     }
 }
 
-// MARK: - QuickActionButton
-// Botones secundarios: Describir / Leer
-
 private struct QuickActionButton: View {
     let title: String
     let systemIcon: String
@@ -455,19 +414,19 @@ private struct QuickActionButton: View {
             VStack(spacing: 6) {
                 Image(systemName: systemIcon)
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(GVColor.textSecondary)
+                    .foregroundColor(Color(hex: "#0C0C0E"))
 
                 Text(title)
                     .font(GVFont.mono(10, weight: .medium))
-                    .foregroundColor(GVColor.textMuted)
+                    .foregroundColor(Color(hex: "#0C0C0E"))
                     .kerning(0.5)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 64)
-            .background(GVColor.bgCard)
+            .background(Color(hex: "#9FD2D6"))
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(GVColor.border, lineWidth: 0.5)
+                    .stroke(Color(hex: "#9FD2D6").opacity(0.3), lineWidth: 0.5)
             )
             .clipShape(RoundedRectangle(cornerRadius: 14))
         }
@@ -476,12 +435,8 @@ private struct QuickActionButton: View {
     }
 }
 
-// MARK: - SpatialAudioBar
-// Indicador de posición izquierda–derecha del objeto detectado.
-// position: 0.0 = izquierda total, 1.0 = derecha total, 0.5 = centro
-
 private struct SpatialAudioBar: View {
-    let position: Double // 0.0 ... 1.0
+    let position: Double
 
     var body: some View {
         HStack(spacing: 8) {
@@ -492,7 +447,7 @@ private struct SpatialAudioBar: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color.white.opacity(0.08))
+                        .fill(Color.black.opacity(0.15))
                         .frame(height: 3)
 
                     Circle()
@@ -514,9 +469,6 @@ private struct SpatialAudioBar: View {
     }
 }
 
-// MARK: - DirectionCard
-// Tarjeta con flecha de dirección — visible en estado .guiding
-
 private struct DirectionCard: View {
     let direction: GuideDirection
 
@@ -536,7 +488,7 @@ private struct DirectionCard: View {
                 .overlay(
                     Image(systemName: arrowIcon)
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(GVColor.bgPage)
+                        .foregroundColor(Color(hex: "#1A1A1A"))
                 )
 
             VStack(alignment: .leading, spacing: 3) {
@@ -565,18 +517,13 @@ private struct DirectionCard: View {
     }
 }
 
-// MARK: - DetectedObjectsPanel
-// Panel de objetos detectados — aparece en scanning/guiding
-
 private struct DetectedObjectsPanel: View {
     let objects: [DetectedObject]
     let targetLabel: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Heading
             HStack {
-               // Panel heading
                 if let target = targetLabel {
                     Text("Buscando: \(target)")
                         .font(GVFont.mono(9, weight: .medium))
@@ -603,7 +550,6 @@ private struct DetectedObjectsPanel: View {
             Divider()
                 .background(GVColor.border)
 
-            // Object rows
             ForEach(Array(objects.prefix(3).enumerated()), id: \.offset) { idx, obj in
                 let isTarget = obj.label.lowercased() == targetLabel?.lowercased()
 
@@ -657,9 +603,6 @@ private struct DetectedObjectsPanel: View {
     }
 }
 
-// MARK: - CameraGridOverlay
-// Rejilla sobre el viewfinder para referencia visual — cambia de color según estado
-
 private struct CameraGridOverlay: View {
     let state: SearchState
 
@@ -698,8 +641,6 @@ private struct CameraGridOverlay: View {
     }
 }
 
-// MARK: - Color(hex:) extension
-
 extension Color {
     init(hex: String) {
         let h = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
@@ -712,13 +653,9 @@ extension Color {
     }
 }
 
-// MARK: - Color orange convenience
-
 extension GVColor {
     static let orange = Color(hex: "#E8924A")
 }
-
-// MARK: - Preview
 
 #if DEBUG
 #Preview("Idle") {

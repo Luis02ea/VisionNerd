@@ -18,10 +18,8 @@ final class CameraService: NSObject, @unchecked Sendable {
     
     // MARK: - Properties
     
-    /// Sesión de captura de AVFoundation.
     let captureSession = AVCaptureSession()
     
-    /// Cola serial dedicada para output de video.
     private let videoOutputQueue = DispatchQueue(
         label: "com.guidevision.camera.videooutput",
         qos: .userInitiated

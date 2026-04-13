@@ -1,55 +1,31 @@
-// MARK: - AccessibleButton.swift
-// GuideVision — Presentation Layer
-// Copyright © 2026 GuideVision. All rights reserved.
-
 import SwiftUI
 
-// MARK: - AccessibleButton
-
-/// Botón accesible diseñado para usuarios con discapacidad visual.
-///
-/// Características:
-/// - Área de toque grande (mínimo 60x60 puntos)
-/// - Alto contraste (fondo oscuro, texto blanco)
-/// - Feedback háptico al presionar
-/// - Integración completa con VoiceOver
-/// - Soporte para iconos SF Symbols
 struct AccessibleButton: View {
     
-    // MARK: - Properties
-    
-    /// Título del botón.
     let title: String
     
-    /// Nombre del ícono SF Symbol.
     let icon: String?
     
-    /// Etiqueta de accesibilidad descriptiva.
     let accessibilityDescription: String
     
-    /// Pista de accesibilidad.
     let accessibilityHintText: String
     
-    /// Acción al presionar.
     let action: () -> Void
     
-    /// Estilo del botón.
     var style: AccessibleButtonStyle = .primary
     
-    /// Indica si el botón está deshabilitado.
     var isDisabled: Bool = false
-    
-    // MARK: - Button Styles
     
     enum AccessibleButtonStyle {
         case primary
         case secondary
         case danger
         
+        
         var backgroundColor: Color {
             switch self {
-            case .primary: return .blue
-            case .secondary: return .gray.opacity(0.3)
+            case .primary: return Color(red: 18/255, green: 186/255, blue: 170/255)
+            case .secondary: return Color(red: 159/255, green: 210/255, blue: 214/255)
             case .danger: return .red
             }
         }
@@ -62,8 +38,6 @@ struct AccessibleButton: View {
             }
         }
     }
-    
-    // MARK: - Initialization
     
     init(
         title: String,
@@ -82,8 +56,6 @@ struct AccessibleButton: View {
         self.isDisabled = isDisabled
         self.action = action
     }
-    
-    // MARK: - Body
     
     var body: some View {
         Button(action: {
@@ -118,36 +90,64 @@ struct AccessibleButton: View {
     }
 }
 
-// MARK: - Preview
-
 #if DEBUG
 #Preview {
-    VStack(spacing: 16) {
-        AccessibleButton(
-            title: "Buscar Producto",
-            icon: "magnifyingglass",
-            accessibilityHint: "Activa la búsqueda guiada de un producto"
-        ) {
-            print("Buscar pressed")
+    VStack(spacing: 0) {
+        HStack(spacing: 10) {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(red: 159/255, green: 210/255, blue: 214/255))
+                .frame(width: 36, height: 36)
+                .overlay(
+                    Image("Start")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
+                )
+            
+            Text("BrightEyes")
+                .font(.system(size: 18, weight: .heavy))
+                .foregroundColor(Color(red: 26/255, green: 26/255, blue: 26/255))
+            
+            Spacer()
         }
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+        .padding(.bottom, 16)
+        .background(Color(red: 245/255, green: 245/255, blue: 220/255))
         
-        AccessibleButton(
-            title: "Leer Etiqueta",
-            icon: "doc.text.viewfinder",
-            accessibilityHint: "Lee la etiqueta visible frente a la cámara"
-        ) {
-            print("Leer pressed")
-        }
+        Spacer()
         
-        AccessibleButton(
-            title: "Cancelar",
-            icon: "xmark.circle",
-            style: .danger,
-            accessibilityHint: "Cancela la operación actual"
-        ) {
-            print("Cancelar pressed")
+        VStack(spacing: 16) {
+            AccessibleButton(
+                title: "Buscar Producto",
+                icon: "magnifyingglass",
+                accessibilityHint: "Activa la búsqueda guiada de un producto"
+            ) {
+                print("Buscar pressed")
+            }
+            
+            AccessibleButton(
+                title: "Leer Etiqueta",
+                icon: "doc.text.viewfinder",
+                accessibilityHint: "Lee la etiqueta visible frente a la cámara",
+                style: .secondary
+            ) {
+                print("Leer pressed")
+            }
+            
+            AccessibleButton(
+                title: "Cancelar",
+                icon: "xmark.circle",
+                accessibilityHint: "Cancela la operación actual", style: .danger
+            ) {
+                print("Cancelar pressed")
+            }
         }
+        .padding()
+        
+        Spacer()
     }
-    .padding()
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color(red: 245/255, green: 245/255, blue: 220/255))
 }
 #endif

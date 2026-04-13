@@ -1,61 +1,27 @@
-//
-//  SearchView.swift
-//  AppIOS
-//
-//  Created by Alumno on 10/04/26.
-//
-
-// MARK: - SearchView.swift
-// GuideVision — Presentation Layer
-// Copyright © 2026 GuideVision. All rights reserved.
-
 import SwiftUI
 
-// MARK: - SearchView
-
-/// Vista del flujo de búsqueda guiada con indicadores de progreso.
-///
-/// Muestra:
-/// - Indicador de dirección (izquierda/centro/derecha) con animación
-/// - Barra de proximidad progresiva
-/// - Indicador de estado de la búsqueda
-/// - Botón de cancelación accesible
-///
-/// ## Accesibilidad
-/// Todos los indicadores visuales tienen equivalentes de VoiceOver.
-/// La dirección y proximidad se anuncian periódicamente.
 struct SearchView: View {
-    
-    // MARK: - Properties
     
     @State var viewModel: SearchViewModel
     
-    /// Acción al cancelar la búsqueda.
     let onCancel: () -> Void
-    
-    // MARK: - Body
     
     var body: some View {
         VStack(spacing: 24) {
-            // Search query header
             Text("Buscando: \(viewModel.currentQuery)")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .accessibilityLabel("Buscando \(viewModel.currentQuery)")
             
-            // Direction indicator
             directionIndicator
             
-            // Proximity bar
             proximityBar
             
-            // Status info
             statusInfo
             
             Spacer()
             
-            // Cancel button
             AccessibleButton(
                 title: "Cancelar Búsqueda",
                 icon: "xmark.circle",
@@ -72,8 +38,6 @@ struct SearchView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Panel de búsqueda guiada")
     }
-    
-    // MARK: - Direction Indicator
     
     private var directionIndicator: some View {
         HStack(spacing: 0) {
@@ -108,8 +72,6 @@ struct SearchView: View {
         .accessibilityLabel("Dirección: \(viewModel.currentDirection?.localizedDescription ?? "desconocida")")
     }
     
-    // MARK: - Proximity Bar
-    
     private var proximityBar: some View {
         VStack(spacing: 8) {
             Text("Proximidad")
@@ -118,11 +80,9 @@ struct SearchView: View {
             
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color.gray.opacity(0.3))
                     
-                    // Fill
                     RoundedRectangle(cornerRadius: 12)
                         .fill(proximityGradient)
                         .frame(width: geometry.size.width * viewModel.proximityProgress)
@@ -131,7 +91,6 @@ struct SearchView: View {
             }
             .frame(height: 30)
             
-            // Distance label
             Text(viewModel.currentDistance?.localizedDescription ?? "Calculando distancia...")
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.8))
@@ -145,8 +104,6 @@ struct SearchView: View {
         .accessibilityLabel("Proximidad: \(Int(viewModel.proximityProgress * 100)) por ciento. \(viewModel.currentDistance?.localizedDescription ?? "")")
     }
     
-    // MARK: - Status Info
-    
     private var statusInfo: some View {
         HStack {
             Label("\(viewModel.framesProcessed) frames", systemImage: "camera.viewfinder")
@@ -157,8 +114,6 @@ struct SearchView: View {
         .foregroundColor(.white.opacity(0.6))
         .accessibilityHidden(true)
     }
-    
-    // MARK: - Helpers
     
     private func isDirectionActive(_ label: String) -> Bool {
         switch (label, viewModel.currentDirection) {

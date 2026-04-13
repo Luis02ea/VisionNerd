@@ -5,28 +5,11 @@
 //  Created by Alumno on 10/04/26.
 //
 
-// MARK: - SettingsView.swift
-// GuideVision — Presentation Layer
-// Copyright © 2026 GuideVision. All rights reserved.
-
 import SwiftUI
 import AVFoundation
 
 // MARK: - SettingsView
 
-/// Vista de configuración de la aplicación.
-///
-/// Permite al usuario ajustar:
-/// - Velocidad de la voz
-/// - Voz preferida
-/// - API key para IA en la nube
-/// - Proveedor de IA
-/// - Modo solo local
-///
-/// ## Accesibilidad
-/// Todos los controles tienen labels descriptivos y hints.
-/// Los campos de texto sensibles (API key) están marcados como no accesibles
-/// para screenshots de VoiceOver.
 struct SettingsView: View {
     
     // MARK: - Properties

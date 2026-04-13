@@ -20,31 +20,20 @@ import Foundation
 /// - `.unknown` — Intención no reconocida
 public enum UserIntent: Sendable, Equatable {
     
-    /// Buscar un producto específico con filtros dietéticos opcionales.
-    ///
-    /// - Parameters:
-    ///   - query: Nombre del producto a buscar (e.g., "leche", "pan integral").
-    ///   - filters: Filtros dietéticos extraídos del comando (e.g., "sin gluten").
+
     case search(query: String, filters: [DietaryFilter])
     
-    /// Describir la escena actual capturada por la cámara.
     case describeScene
     
-    /// Activar OCR para leer texto/etiquetas frente a la cámara.
     case readLabel
     
-    /// Consultar la distancia al objeto detectado más cercano.
     case getDistance
     
-    /// Cancelar la operación en curso.
     case cancel
     
-    /// Intención no reconocida — se pide al usuario que repita.
     case unknown(rawText: String)
     
-    // MARK: - Properties
     
-    /// Descripción verbal de la intención para feedback al usuario.
     public var confirmationMessage: String {
         switch self {
         case .search(let query, let filters):

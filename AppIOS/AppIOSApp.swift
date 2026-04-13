@@ -8,7 +8,6 @@
 import SwiftUI
 import SwiftData
 
-// NOTE: @main removed — real entry point is App/GuideVisionApp.swift
 struct AppIOSApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
